@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "amoji",
+  "version": "${version}",
+
+  "name": "Amoji",
+  "description": "",
+  "authors": [],
+  "contact": {},
+
+  "license": "MIT",
+  "icon": "icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "red.bread.amoji.fabric.AmojiFabric"
+    ]
+  },
+  "mixins": [
+    "amoji.mixins.json",
+    "amoji-common.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "minecraft": ">=1.20.2"
+  }
+}
