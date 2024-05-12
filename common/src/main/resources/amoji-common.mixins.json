@@ -6,6 +6,8 @@
   "mixins": [
   ],
   "client": [
+    "CommandSuggestionsAmojiMixin",
+    "MinecraftAmojiMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,9 +2,13 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 loom {
+    accessWidenerPath = file("${project(':common').projectDir.path}/src/main/resources/amojicommon.accesswidener")
     forge {
         mixinConfig "amoji-common.mixins.json"
         mixinConfig "amoji.mixins.json"
+
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
     }
 }
 architectury {
