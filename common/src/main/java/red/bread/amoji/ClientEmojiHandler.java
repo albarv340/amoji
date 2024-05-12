@@ -1,5 +1,7 @@
 package red.bread.amoji;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -8,10 +10,12 @@ import net.minecraft.client.renderer.blockentity.SignRenderer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import red.bread.amoji.api.Emoji;
 import red.bread.amoji.api.EmojiCategory;
+import red.bread.amoji.file.CustomFile;
 import red.bread.amoji.render.EmojiFontRenderer;
 import red.bread.amoji.util.EmojiUtil;
 import red.bread.amoji.util.WebUtils;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,7 +61,8 @@ public class ClientEmojiHandler {
     private static void preInitEmojis() {
         CATEGORIES.addAll(Arrays.asList("Smileys & Emotion", "Animals & Nature", "Food & Drink", "Activities", "Travel & Places", "Objects", "Symbols", "Flags").stream().map(s -> new EmojiCategory(s, false)).collect(Collectors.toList()));
         loadBaseEmojis();
-        loadAVOEmojiAPIEmojis();
+        loadCustomEmojiConfig();
+        loadCustomEmojis();
     }
 
 
@@ -81,21 +86,37 @@ public class ClientEmojiHandler {
         }
     }
 
-    public static void loadAVOEmojiAPIEmojis() {
-        try {
-            CATEGORIES.add(0, new EmojiCategory("AVO", false));
-            for (Map.Entry<String, JsonElement> entry : WebUtils.readJsonFromUrl("https://script.google.com/macros/s/AKfycbzjrfYF_GDwuCEksMghivp8dLKAk-UtXGE3zl0fu8s4hzK60J3iFfh1QhtZJUvjUM8a/exec").getAsJsonObject().entrySet()) {
-                Emoji emoji = new Emoji();
-                emoji.name = entry.getKey();
-                emoji.url = entry.getValue().getAsString();
-                emoji.strings.add(":" + entry.getKey() + ":");
-                Constants.EMOJI_MAP.computeIfAbsent("AVO", s -> new ArrayList<>()).add(emoji);
-                Constants.EMOJI_LIST.add(emoji);
+    public static void loadCustomEmojis() {
+        for (Map.Entry<String, String> customEntry : Constants.CUSTOM_SOURCES.entrySet()) {
+            try {
+                CATEGORIES.add(0, new EmojiCategory(customEntry.getKey(), false));
+                for (Map.Entry<String, JsonElement> entry : WebUtils.readJsonFromUrl(customEntry.getValue()).getAsJsonObject().entrySet()) {
+                    Emoji emoji = new Emoji();
+                    emoji.name = entry.getKey();
+                    emoji.url = entry.getValue().getAsString();
+                    emoji.strings.add(":" + entry.getKey() + ":");
+                    Constants.EMOJI_MAP.computeIfAbsent(customEntry.getKey(), s -> new ArrayList<>()).add(emoji);
+                    Constants.EMOJI_LIST.add(emoji);
+                }
+            } catch (Exception e) {
+                Constants.error = true;
+                Constants.LOG.error("Amoji encountered an error while loading custom emojis", e);
             }
-        } catch (Exception e) {
-            Constants.error = true;
-            Constants.LOG.error("Amoji encountered an error while loading", e);
         }
+    }
+
+    public static void addCustomEmojiSource(String name, String url) {
+        Constants.CUSTOM_SOURCES.put(name, url);
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(Constants.CUSTOM_SOURCES);
+        new CustomFile(Constants.CONFIGS_FILE_NAME).writeJson(jsonString);
+    }
+
+    private static void loadCustomEmojiConfig() {
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<HashMap<String, String>>() {}.getType();
+        String jsonString = new CustomFile(Constants.CONFIGS_FILE_NAME).readJson().toString();
+        Constants.CUSTOM_SOURCES = gson.fromJson(jsonString, mapType);
     }
 
     private static void initEmojis() {

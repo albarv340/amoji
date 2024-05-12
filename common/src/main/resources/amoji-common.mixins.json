@@ -4,6 +4,7 @@
   "package": "red.bread.amoji.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "CommandInitAmojiMixin"
   ],
   "client": [
     "CommandSuggestionsAmojiMixin",

@@ -13,6 +13,7 @@ public class Constants {
 
     public static final String MOD_ID = "amoji";
     public static final String MOD_NAME = "Amojiful";
+    public static final String CONFIGS_FILE_NAME = "amoji/config.json";
     public static final String EMOJI_PROVIDER_URL = "https://raw.githubusercontent.com/iamcal/emoji-data/master";
     public static final String EMOJI_DATA_URL = EMOJI_PROVIDER_URL + "/emoji.json";
     public static final String EMOJI_BASE_URL = EMOJI_PROVIDER_URL + "/img-twitter-64/";
@@ -20,5 +21,6 @@ public class Constants {
 
     public static final Map<String, List<Emoji>> EMOJI_MAP = new HashMap<>();
     public static final List<Emoji> EMOJI_LIST = new ArrayList<>();
+    public static Map<String, String> CUSTOM_SOURCES = new HashMap<>();
     public static boolean error = false;
 }
