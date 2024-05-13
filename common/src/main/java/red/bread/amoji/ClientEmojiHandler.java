@@ -3,6 +3,7 @@ package red.bread.amoji;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -10,6 +11,7 @@ import net.minecraft.client.renderer.blockentity.SignRenderer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import red.bread.amoji.api.Emoji;
 import red.bread.amoji.api.EmojiCategory;
+import red.bread.amoji.commands.AmojiCommand;
 import red.bread.amoji.file.CustomFile;
 import red.bread.amoji.render.EmojiFontRenderer;
 import red.bread.amoji.util.EmojiUtil;
@@ -30,6 +32,7 @@ public class ClientEmojiHandler {
         preInitEmojis();
         initEmojis();
         indexEmojis();
+        ClientCommandRegistrationEvent.EVENT.register((dispatcher, context) -> AmojiCommand.register(dispatcher));
         Constants.LOG.info("Loaded " + Constants.EMOJI_LIST.size() + " emojis");
     }
 

@@ -3,9 +3,7 @@
   "minVersion": "0.8",
   "package": "red.bread.amoji.mixin",
   "compatibilityLevel": "JAVA_17",
-  "mixins": [
-    "CommandInitAmojiMixin"
-  ],
+  "mixins": [],
   "client": [
     "CommandSuggestionsAmojiMixin",
     "MinecraftAmojiMixin"
