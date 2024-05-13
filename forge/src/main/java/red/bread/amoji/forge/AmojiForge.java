@@ -1,14 +1,21 @@
 package red.bread.amoji.forge;
 
-import dev.architectury.platform.forge.EventBuses;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import red.bread.amoji.Constants;
+import red.bread.amoji.commands.AmojiCommand;
 
 @Mod(Constants.MOD_ID)
 public class AmojiForge {
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onClientCommandInit(RegisterClientCommandsEvent event) {
+        AmojiCommand.register(event.getDispatcher());
+    }
+
     public AmojiForge() {
-		// Submit our event bus to let architectury register our content on the right time
-        EventBuses.registerModEventBus(Constants.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
+        MinecraftForge.EVENT_BUS.register(this);
     }
 }

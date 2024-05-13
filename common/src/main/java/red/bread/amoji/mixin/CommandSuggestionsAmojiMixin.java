@@ -32,10 +32,14 @@ public abstract class CommandSuggestionsAmojiMixin {
     @Nullable
     private CompletableFuture<Suggestions> pendingSuggestions;
 
+    @Shadow @Final
+    EditBox input;
+
     @Inject(method = "updateCommandInfo()V", at = @At(value = "TAIL"), locals = LocalCapture.CAPTURE_FAILHARD)
 
-    public void updateCommandInfo(CallbackInfo ci, String string, StringReader stringReader, boolean bl, int i) {
+    public void updateCommandInfo(CallbackInfo ci, String string) {
         if (this.minecraft.player != null) {
+            int i = this.input.getCursorPosition();
             String string2 = string.substring(0, i);
             int j = CommandSuggestions.getLastWordIndex(string2);
             Collection<String> collection = this.minecraft.player.connection.getSuggestionsProvider().getCustomTabSugggestions();

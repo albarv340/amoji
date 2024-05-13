@@ -4,8 +4,7 @@ plugins {
 loom {
     accessWidenerPath = file("${project(':common').projectDir.path}/src/main/resources/amojicommon.accesswidener")
     forge {
-        mixinConfig "amoji-common.mixins.json"
-        mixinConfig "amoji.mixins.json"
+        mixinConfig("amoji-common.mixins.json", "amoji.mixins.json")
 
         convertAccessWideners = true
         extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
@@ -27,7 +26,7 @@ configurations {
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
     // Remove the next line if you don't want to depend on the API
-    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
+//    modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
