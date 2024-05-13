@@ -3,6 +3,7 @@ package red.bread.amoji;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -62,7 +63,7 @@ public class ClientEmojiHandler {
         CATEGORIES.addAll(Arrays.asList("Smileys & Emotion", "Animals & Nature", "Food & Drink", "Activities", "Travel & Places", "Objects", "Symbols", "Flags").stream().map(s -> new EmojiCategory(s, false)).collect(Collectors.toList()));
         loadBaseEmojis();
         loadCustomEmojiConfig();
-        loadCustomEmojis();
+        loadAllCustomEmojis();
     }
 
 
@@ -86,26 +87,30 @@ public class ClientEmojiHandler {
         }
     }
 
-    public static void loadCustomEmojis() {
-        for (Map.Entry<String, String> customEntry : Constants.CUSTOM_SOURCES.entrySet()) {
+    public static void loadAllCustomEmojis() {
+        for (Map.Entry<String, String> entry : Constants.CUSTOM_SOURCES.entrySet()) {
             try {
-                CATEGORIES.add(0, new EmojiCategory(customEntry.getKey(), false));
-                for (Map.Entry<String, JsonElement> entry : WebUtils.readJsonFromUrl(customEntry.getValue()).getAsJsonObject().entrySet()) {
-                    Emoji emoji = new Emoji();
-                    emoji.name = entry.getKey();
-                    emoji.url = entry.getValue().getAsString();
-                    emoji.strings.add(":" + entry.getKey() + ":");
-                    Constants.EMOJI_MAP.computeIfAbsent(customEntry.getKey(), s -> new ArrayList<>()).add(emoji);
-                    Constants.EMOJI_LIST.add(emoji);
-                }
+                loadCustomEmojis(entry.getKey(), entry.getValue());
             } catch (Exception e) {
-                Constants.error = true;
-                Constants.LOG.error("Amoji encountered an error while loading custom emojis", e);
+                Constants.LOG.error("Amoji encountered an error while loading custom emojis with url: " + entry.getValue(), e);
             }
         }
     }
+    public static int loadCustomEmojis(String name, String url) throws RuntimeException {
+        CATEGORIES.add(0, new EmojiCategory(name, false));
+        JsonObject jsonData = WebUtils.readJsonFromUrl(url).getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : jsonData.entrySet()) {
+            Emoji emoji = new Emoji();
+            emoji.name = entry.getKey();
+            emoji.url = entry.getValue().getAsString();
+            emoji.strings.add(":" + entry.getKey() + ":");
+            Constants.EMOJI_MAP.computeIfAbsent(name, s -> new ArrayList<>()).add(emoji);
+            Constants.EMOJI_LIST.add(emoji);
+        }
+        return jsonData.entrySet().size();
+    }
 
-    public static void addCustomEmojiSource(String name, String url) {
+        public static void addCustomEmojiSource(String name, String url) {
         Constants.CUSTOM_SOURCES.put(name, url);
         Gson gson = new Gson();
         String jsonString = gson.toJson(Constants.CUSTOM_SOURCES);

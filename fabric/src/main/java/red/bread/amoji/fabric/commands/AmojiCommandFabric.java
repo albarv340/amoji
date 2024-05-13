@@ -25,31 +25,48 @@ public class AmojiCommandFabric {
                 .then(ClientCommandManager.literal("add")
                         .then(ClientCommandManager.argument("name", MessageArgument.message())
                                 .executes(context -> {
-                                    String[] words = context.getArgument("name", MessageArgument.Message.class).getText().split("\\s+");
-                                    if (words.length < 2) {
-                                        context.getSource().sendFeedback(Component.literal("Missing arguments"));
-                                        return 0;
-                                    }
-                                    String name = String.join(" ", Arrays.copyOfRange(words, 0, words.length - 1));
-                                    String url = words[words.length - 1];
-                                    if (!WebUtils.isValidUrl(url)) {
-                                        context.getSource().sendFeedback(Component.literal("Invalid URL. Make sure to include https"));
-                                        return 0;
-                                    }
-                                    try {
-                                        WebUtils.readJsonFromUrl(url);
-                                    } catch (Exception e) {
-                                        context.getSource().sendFeedback(Component.literal("Malformed JSON returned from URL"));
-                                        return 0;
-                                    }
-                                    ClientEmojiHandler.addCustomEmojiSource(name, url);
-                                    ClientEmojiHandler.loadCustomEmojis();
-                                    context.getSource().sendFeedback(Component.literal("§7Successfully added custom source §b" + name + " §7with url §b" + url));
+                                    new Thread(() -> {
+                                        String[] words = context.getArgument("name", MessageArgument.Message.class).getText().split("\\s+");
+                                        if (words.length < 2) {
+                                            context.getSource().sendFeedback(Component.literal("§cMissing arguments"));
+                                            return;
+                                        }
+                                        String name = String.join(" ", Arrays.copyOfRange(words, 0, words.length - 1));
+                                        String url = words[words.length - 1];
+                                        if (!WebUtils.isValidUrl(url)) {
+                                            context.getSource().sendFeedback(Component.literal("§cInvalid URL. Make sure to include https"));
+                                            return;
+                                        }
+                                        context.getSource().sendFeedback(Component.literal("§7Attempting to add emoji source..."));
+                                        int amount;
+                                        try {
+                                            amount = ClientEmojiHandler.loadCustomEmojis(name, url);
+                                        } catch (Exception e) {
+                                            context.getSource().sendFeedback(Component.literal("§cFailed to load emojis from URL. See logs for more info."));
+                                            Constants.LOG.error("Error trying to load custom emoji url", e);
+                                            return;
+                                        }
+                                        ClientEmojiHandler.addCustomEmojiSource(name, url);
+                                        context.getSource().sendFeedback(Component.literal("§7Successfully added §b" + amount + "§7 emojis from custom source §b" + name + " §7with url §b" + url));
+                                    }).start();
                                     return 1;
                                 })
                                 .then(ClientCommandManager.argument("url", MessageArgument.message()))
                         )
+                ).then(ClientCommandManager.literal("remove")
+                        .then(ClientCommandManager.argument("name", MessageArgument.message())
+                                .executes(context -> {
+                                    String name = context.getArgument("name", MessageArgument.Message.class).getText();
+                                    if (Constants.CUSTOM_SOURCES.containsKey(name)) {
+                                        Constants.CUSTOM_SOURCES.remove(name);
+                                        context.getSource().sendFeedback(Component.literal("§7Successfully removed custom source §b" + name));
+                                        context.getSource().sendFeedback(Component.literal("§7Its emojis will be gone at next start up"));
+                                    }
+                                    return 1;
+                                })
+                        )
                 )
+
         );
     }
 }
