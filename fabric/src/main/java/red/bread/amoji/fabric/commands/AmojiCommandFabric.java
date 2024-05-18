@@ -26,7 +26,7 @@ public class AmojiCommandFabric {
                         .then(ClientCommandManager.argument("name", MessageArgument.message())
                                 .executes(context -> {
                                     new Thread(() -> {
-                                        String[] words = context.getArgument("name", MessageArgument.Message.class).getText().split("\\s+");
+                                        String[] words = context.getArgument("name", MessageArgument.Message.class).text().split("\\s+");
                                         if (words.length < 2) {
                                             context.getSource().sendFeedback(Component.literal("§cMissing arguments"));
                                             return;
@@ -56,7 +56,7 @@ public class AmojiCommandFabric {
                 ).then(ClientCommandManager.literal("remove")
                         .then(ClientCommandManager.argument("name", MessageArgument.message())
                                 .executes(context -> {
-                                    String name = context.getArgument("name", MessageArgument.Message.class).getText();
+                                    String name = context.getArgument("name", MessageArgument.Message.class).text();
                                     if (Constants.CUSTOM_SOURCES.containsKey(name)) {
                                         Constants.CUSTOM_SOURCES.remove(name);
                                         context.getSource().sendFeedback(Component.literal("§7Successfully removed custom source §b" + name));
