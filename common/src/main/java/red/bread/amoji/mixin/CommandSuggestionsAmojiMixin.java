@@ -1,13 +1,10 @@
 package red.bread.amoji.mixin;
 
-import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.SharedSuggestionProvider;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -32,7 +29,8 @@ public abstract class CommandSuggestionsAmojiMixin {
     @Nullable
     private CompletableFuture<Suggestions> pendingSuggestions;
 
-    @Shadow @Final
+    @Shadow
+    @Final
     EditBox input;
 
     @Inject(method = "updateCommandInfo()V", at = @At(value = "TAIL"), locals = LocalCapture.CAPTURE_FAILHARD)
@@ -42,10 +40,12 @@ public abstract class CommandSuggestionsAmojiMixin {
             int i = this.input.getCursorPosition();
             String string2 = string.substring(0, i);
             int j = CommandSuggestions.getLastWordIndex(string2);
-            Collection<String> collection = this.minecraft.player.connection.getSuggestionsProvider().getCustomTabSugggestions();
-            // Always makes emojis tabbable, but doesn't seem to override other tab suggestions
-            collection.addAll(EmojiUtil.getEmojiSuggestions());
-            this.pendingSuggestions = SharedSuggestionProvider.suggest(collection, new SuggestionsBuilder(string2, j));
+            if (j < string.length() && string.charAt(j) == ':') {
+                // Makes emojis tabbable if the word starts with a :, hopefully doesn't override other suggestions
+                Collection<String> collection = this.minecraft.player.connection.getSuggestionsProvider().getCustomTabSugggestions();
+                collection.addAll(EmojiUtil.getEmojiSuggestions());
+                this.pendingSuggestions = SharedSuggestionProvider.suggest(collection, new SuggestionsBuilder(string2, j));
+            }
         }
     }
 }
