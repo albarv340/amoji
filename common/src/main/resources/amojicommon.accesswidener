@@ -21,3 +21,4 @@ accessible field net/minecraft/client/gui/screens/ChatScreen initial Ljava/lang/
 accessible field net/minecraft/client/gui/components/AbstractWidget x I
 accessible field net/minecraft/client/gui/components/AbstractWidget y I
 accessible method net/minecraft/client/gui/components/CommandSuggestions getLastWordIndex (Ljava/lang/String;)I
+accessible method net/minecraft/resources/ResourceLocation <init> (Ljava/lang/String;Ljava/lang/String;)V
