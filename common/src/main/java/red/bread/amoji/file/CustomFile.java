@@ -35,7 +35,7 @@ public class CustomFile extends File {
 
     public JsonObject readJson() {
         try (InputStreamReader reader = new InputStreamReader(new FileInputStream(this), StandardCharsets.UTF_8); JsonReader jsonReader = new JsonReader(reader)) {
-            jsonReader.setLenient(true);
+//            jsonReader.setLenient(true);
             return new Gson().fromJson(jsonReader, JsonObject.class);
         } catch (Exception e) {
             Constants.LOG.error("Error reading json", e);

@@ -3,6 +3,7 @@ package red.bread.amoji.fabric.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.network.chat.Component;
 import red.bread.amoji.ClientEmojiHandler;
@@ -65,8 +66,16 @@ public class AmojiCommandFabric {
                                     return 1;
                                 })
                         )
+                ).then(ClientCommandManager.literal("reload")
+                        .executes(context -> {
+                            new Thread(() -> {
+                                context.getSource().sendFeedback(Component.literal("§7Reloading emojis..."));
+                                ClientEmojiHandler.loadAllCustomEmojis();
+                                context.getSource().sendFeedback(Component.literal("§7Successfully reloaded all emojis"));
+                            }).start();
+                            return 1;
+                        })
                 )
-
         );
     }
 }

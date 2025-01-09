@@ -7,10 +7,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.client.renderer.texture.TextureContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import red.bread.amoji.Constants;
 import red.bread.amoji.util.EmojiUtil;
@@ -61,6 +63,7 @@ public class Emoji implements Predicate<String> {
             img.forEach(AbstractTexture::releaseId);
             deleteOldTexture = false;
         }
+//        return loading_texture;
         return finishedLoading && !frames.isEmpty() ? frames.get((int) (System.currentTimeMillis() / 10D % frames.size())) : loading_texture;
     }
 
@@ -203,6 +206,18 @@ public class Emoji implements Predicate<String> {
         public DownloadImageData(BufferedImage cacheFileIn, ResourceLocation textureResourceLocation) {
             super(textureResourceLocation);
             this.cacheFile = cacheFileIn;
+            if (this.cacheFile != null) {
+                new Thread(() -> {
+                    try {
+                        ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        ImageIO.write(this.cacheFile, "png", os);
+                        InputStream is = new ByteArrayInputStream(os.toByteArray());
+                        setImage(this.loadTexture(is));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).start();
+            }
         }
 
         private void setImage(NativeImage nativeImageIn) {
@@ -231,23 +246,6 @@ public class Emoji implements Predicate<String> {
                 Constants.LOG.warn("Error while loading the skin texture", ioexception);
             }
             return nativeimage;
-        }
-
-        @Override
-        public void load(ResourceManager resourceManager) throws RuntimeException {
-            if (this.cacheFile == null) {
-                return;
-            }
-            new Thread(() -> {
-                try {
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    ImageIO.write(this.cacheFile, "png", os);
-                    InputStream is = new ByteArrayInputStream(os.toByteArray());
-                    setImage(this.loadTexture(is));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }).start();
         }
 
     }

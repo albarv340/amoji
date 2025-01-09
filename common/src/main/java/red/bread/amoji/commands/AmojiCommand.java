@@ -68,6 +68,15 @@ public class AmojiCommand {
                                     return 1;
                                 })
                         )
+                ).then(Commands.literal("reload")
+                        .executes(context -> {
+                            new Thread(() -> {
+                                context.getSource().sendSuccess(() -> Component.literal("§7Reloading emojis..."), false);
+                                ClientEmojiHandler.loadAllCustomEmojis();
+                                context.getSource().sendSuccess(() -> Component.literal("§7Successfully reloaded all emojis"), false);
+                            }).start();
+                            return 1;
+                        })
                 )
         );
     }

@@ -15,6 +15,7 @@ import net.minecraft.client.gui.font.glyphs.EmptyGlyph;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
@@ -72,8 +73,6 @@ public class EmojiFontRenderer extends Font {
                             }
                         }
                         emojis.putAll(clean);
-                        unformattedText = unformattedText.replaceFirst(Pattern.quote(emojiText), "☃");
-                        text = text.replaceFirst("(?i)" + Pattern.quote(emojiText), "☃");
                     }
                 }
             }
@@ -82,20 +81,20 @@ public class EmojiFontRenderer extends Font {
     }
 
     @Override
-    public float renderText(String text, float x, float y, int color, boolean isShadow, Matrix4f matrix, MultiBufferSource buffer, DisplayMode displayMode, int colorBackgroundIn, int packedLight) {
-        if (text.isEmpty())
+    public float renderText(String string, float f, float g, int i, boolean bl, Matrix4f matrix4f, MultiBufferSource multiBufferSource, DisplayMode displayMode, int j, int k, boolean bl2) {
+        if (string.isEmpty())
             return 0;
         HashMap<Integer, Emoji> emojis = new LinkedHashMap<>();
         try {
-            Pair<String, HashMap<Integer, Emoji>> cache = RECENT_STRINGS.get(text);
-            text = cache.getLeft();
-            emojis = cache.getRight();
+            Pair<String, HashMap<Integer, Emoji>> cache = RECENT_STRINGS.get(string);
+            string = cache.getLeft();
+//            emojis = cache.getRight();
         } catch (ExecutionException e) {
             Constants.LOG.error("Error getting emoji from cache", e);
         }
-        EmojiCharacterRenderer emojiCharacterRenderer = new EmojiCharacterRenderer(emojis, buffer, x, y, color, isShadow, matrix, displayMode, packedLight);
-        StringDecomposer.iterateFormatted(text, Style.EMPTY, emojiCharacterRenderer);
-        return emojiCharacterRenderer.finish(colorBackgroundIn, x);
+        EmojiCharacterRenderer emojiCharacterRenderer = new EmojiCharacterRenderer(emojis, multiBufferSource, f, g, i, j, bl, matrix4f, displayMode, k, bl2);
+        StringDecomposer.iterateFormatted(string, Style.EMPTY, emojiCharacterRenderer);
+        return emojiCharacterRenderer.finish(f);
     }
 
     @Override
@@ -108,7 +107,7 @@ public class EmojiFontRenderer extends Font {
             });
             String text = builder.toString();
             if (!text.isEmpty()) {
-                color = (color & -67108864) == 0 ? color | -16777216 : color;
+                color = adjustColor(color);
                 HashMap<Integer, Emoji> emojis = new LinkedHashMap<>();
                 try {
                     Pair<String, HashMap<Integer, Emoji>> cache = RECENT_STRINGS.get(text);
@@ -136,47 +135,88 @@ public class EmojiFontRenderer extends Font {
                     }
                     return true;
                 });
-                StringBuilder builder2 = new StringBuilder();
-                FormattedCharSequence.fromList(processors).accept((p_accept_1_, p_accept_2_, ch) -> {
-                    builder2.append((char) ch);
-                    return true;
-                });
+//                StringBuilder builder2 = new StringBuilder();
+//                FormattedCharSequence.fromList(processors).accept((p_accept_1_, p_accept_2_, ch) -> {
+//                    builder2.append((char) ch);
+//                    return true;
+//                });
                 Matrix4f matrix4f = new Matrix4f(matrix);
                 if (isShadow) {
                     EmojiCharacterRenderer emojiCharacterRenderer = new EmojiCharacterRenderer(emojis, buffer, x, y, color, true, matrix, displayMode, packedLight);
                     FormattedCharSequence.fromList(processors).accept(emojiCharacterRenderer);
-                    emojiCharacterRenderer.finish(colorBackgroundIn, x);
+                    emojiCharacterRenderer.finish(x);
                     matrix4f.translate(SHADOW_OFFSET);
                 }
                 EmojiCharacterRenderer emojiCharacterRenderer = new EmojiCharacterRenderer(emojis, buffer, x, y, color, false, matrix4f, displayMode, packedLight);
                 FormattedCharSequence.fromList(processors).accept(emojiCharacterRenderer);
-                return (int) emojiCharacterRenderer.finish(colorBackgroundIn, x);
+                return (int) emojiCharacterRenderer.finish(x);
             }
         }
         return super.drawInBatch(reorderingProcessor, x, y, color, isShadow, matrix, buffer, displayMode, colorBackgroundIn, packedLight);
     }
 
+//    @Override
+//        public int drawInBatch(FormattedCharSequence formattedCharSequence, float f, float g, int color, boolean isShadow, Matrix4f matrix4f, MultiBufferSource multiBufferSource, DisplayMode displayMode, int colorBackgroundIn, int k) {
+////    public void drawInBatch8xOutline(FormattedCharSequence formattedCharSequence, float f, float g, int i, int j, Matrix4f matrix4f, MultiBufferSource multiBufferSource, int k) {
+//        int l = adjustColor(color);
+//        HashMap<Integer, Emoji> emojis = new LinkedHashMap<>();
+//        try {
+//            Pair<String, HashMap<Integer, Emoji>> cache = RECENT_STRINGS.get(formattedCharSequence.toString());
+//            emojis = cache.getRight();
+//        } catch (ExecutionException e) {
+//            Constants.LOG.error("Error getting emoji from cache", e);
+//        }
+//        EmojiCharacterRenderer stringRenderOutput = new EmojiCharacterRenderer(emojis, multiBufferSource, 0.0F, 0.0F, l, false, matrix4f, Font.DisplayMode.NORMAL, k);
+//
+//        for (int m = -1; m <= 1; ++m) {
+//            for (int n = -1; n <= 1; ++n) {
+//                if (m != 0 || n != 0) {
+//                    float[] fs = new float[]{f};
+//                    int finalN = n;
+//                    formattedCharSequence.accept((lx, style, o) -> {
+//                        boolean bl = style.isBold();
+//                        FontSet fontSet = this.getFontSet(style.getFont());
+//                        GlyphInfo glyphInfo = fontSet.getGlyphInfo(o, this.filterFishyGlyphs);
+//                        stringRenderOutput.x = fs[0] + (float) o * glyphInfo.getShadowOffset();
+//                        stringRenderOutput.y = g + (float) finalN * glyphInfo.getShadowOffset();
+//                        fs[0] += glyphInfo.getAdvance(bl);
+//                        return stringRenderOutput.accept(lx, style.withColor(l), o);
+//                    });
+//                }
+//            }
+//        }
+//
+//        stringRenderOutput.renderCharacters();
+//        EmojiCharacterRenderer stringRenderOutput2 = new EmojiCharacterRenderer(emojis, multiBufferSource, f, g, adjustColor(color), false, matrix4f, Font.DisplayMode.POLYGON_OFFSET, k);
+//        formattedCharSequence.accept(stringRenderOutput2);
+//        stringRenderOutput2.finish(f);
+//        return super.drawInBatch(formattedCharSequence, f, g, color, isShadow, matrix4f, multiBufferSource, displayMode, colorBackgroundIn, k);
+//    }
+
+    private static int adjustColor(int i) {
+        return (i & -67108864) == 0 ? ARGB.opaque(i) : i;
+    }
+
     record CharacterProcessor(int pos, Style style, int character) implements FormattedCharSequence {
 
         @Override
-            public boolean accept(FormattedCharSink iCharacterConsumer) {
-                return iCharacterConsumer.accept(pos, style, character);
-            }
+        public boolean accept(FormattedCharSink iCharacterConsumer) {
+            return iCharacterConsumer.accept(pos, style, character);
         }
+    }
 
     class EmojiCharacterRenderer implements FormattedCharSink {
         final MultiBufferSource bufferSource;
-        private final boolean dropShadow;
-        private final float dimFactor;
-        private final float r;
-        private final float g;
-        private final float b;
-        private final float a;
+        private final boolean drawShadow;
+        private final int color;
+        private final int backgroundColor;
         private final Matrix4f pose;
         private final DisplayMode mode;
         private final int packedLightCoords;
+        private final boolean inverseDepth;
         float x;
         float y;
+        private final List<BakedGlyph.GlyphInstance> glyphInstances;
         @Nullable
         private List<BakedGlyph.Effect> effects;
         private final HashMap<Integer, Emoji> emojis;
@@ -189,27 +229,30 @@ public class EmojiFontRenderer extends Font {
             this.effects.add(effect);
         }
 
-        public EmojiCharacterRenderer(HashMap<Integer, Emoji> emojis, final MultiBufferSource multiBufferSource, final float f, final float g, final int i, final boolean bl, final Matrix4f matrix4f, final DisplayMode displayMode, final int j) {
-            this.bufferSource = multiBufferSource;
+        public EmojiCharacterRenderer(HashMap<Integer, Emoji> emojis, final MultiBufferSource arg2, final float f, final float g, final int i, final boolean bl, final Matrix4f matrix4f, final DisplayMode arg3, final int j) {
+            this(emojis, arg2, f, g, i, 0, bl, matrix4f, arg3, j, true);
+        }
+
+        public EmojiCharacterRenderer(HashMap<Integer, Emoji> emojis, final MultiBufferSource multiBufferSource, final float f, final float g, final int i, final int j, final boolean bl, final Matrix4f matrix4f, final DisplayMode displayMode, final int k, final boolean bl2) {
             this.emojis = emojis;
+            this.glyphInstances = new ArrayList();
+            this.bufferSource = multiBufferSource;
             this.x = f;
             this.y = g;
-            this.dropShadow = bl;
-            this.dimFactor = bl ? 0.25F : 1.0F;
-            this.r = (float)(i >> 16 & 255) / 255.0F * this.dimFactor;
-            this.g = (float)(i >> 8 & 255) / 255.0F * this.dimFactor;
-            this.b = (float)(i & 255) / 255.0F * this.dimFactor;
-            this.a = (float)(i >> 24 & 255) / 255.0F;
+            this.drawShadow = bl;
+            this.color = i;
+            this.backgroundColor = j;
             this.pose = matrix4f;
             this.mode = displayMode;
-            this.packedLightCoords = j;
+            this.packedLightCoords = k;
+            this.inverseDepth = bl2;
         }
 
         public boolean accept(int i, Style style, int j) {
             FontSet fontSet = EmojiFontRenderer.this.getFontSet(style.getFont());
             if (this.emojis.get(i) != null) {
                 Emoji emoji = this.emojis.get(i);
-                if (emoji != null && !this.dropShadow) {
+                if (emoji != null) {
                     EmojiUtil.renderEmoji(emoji, this.x, this.y, pose, bufferSource, packedLightCoords);
                     this.x += 10;
                     return true;
@@ -218,66 +261,92 @@ public class EmojiFontRenderer extends Font {
                 GlyphInfo glyphInfo = fontSet.getGlyphInfo(j, EmojiFontRenderer.this.filterFishyGlyphs);
                 BakedGlyph bakedGlyph = style.isObfuscated() && j != 32 ? fontSet.getRandomGlyph(glyphInfo) : fontSet.getGlyph(j);
                 boolean bl = style.isBold();
-                float f = this.a;
                 TextColor textColor = style.getColor();
-                float g;
-                float h;
-                float l;
-                if (textColor != null) {
-                    int k = textColor.getValue();
-                    g = (float) (k >> 16 & 255) / 255.0F * this.dimFactor;
-                    h = (float) (k >> 8 & 255) / 255.0F * this.dimFactor;
-                    l = (float) (k & 255) / 255.0F * this.dimFactor;
-                } else {
-                    g = this.r;
-                    h = this.g;
-                    l = this.b;
-                }
-
-                float n;
-                float m;
+                int k = this.getTextColor(textColor);
+                int l = this.getShadowColor(style, k);
+                float f = glyphInfo.getAdvance(bl);
+                float g = i == 0 ? this.x - 1.0F : this.x;
+                float h = glyphInfo.getShadowOffset();
                 if (!(bakedGlyph instanceof EmptyGlyph)) {
-                    m = bl ? glyphInfo.getBoldOffset() : 0.0F;
-                    n = this.dropShadow ? glyphInfo.getShadowOffset() : 0.0F;
-                    VertexConsumer vertexConsumer = this.bufferSource.getBuffer(bakedGlyph.renderType(this.mode));
-                    EmojiFontRenderer.this.renderChar(bakedGlyph, bl, style.isItalic(), m, this.x + n, this.y + n, this.pose, vertexConsumer, g, h, l, f, this.packedLightCoords);
+                    float m = bl ? glyphInfo.getBoldOffset() : 0.0F;
+                    this.glyphInstances.add(new BakedGlyph.GlyphInstance(this.x, this.y, k, l, bakedGlyph, style, m, h));
                 }
 
-                m = glyphInfo.getAdvance(bl);
-                n = this.dropShadow ? 1.0F : 0.0F;
                 if (style.isStrikethrough()) {
-                    this.addEffect(new BakedGlyph.Effect(this.x + n - 1.0F, this.y + n + 4.5F, this.x + n + m, this.y + n + 4.5F - 1.0F, 0.01F, g, h, l, f));
+                    this.addEffect(new BakedGlyph.Effect(g, this.y + 4.5F, this.x + f, this.y + 4.5F - 1.0F, this.getOverTextEffectDepth(), k, l, h));
                 }
 
                 if (style.isUnderlined()) {
-                    this.addEffect(new BakedGlyph.Effect(this.x + n - 1.0F, this.y + n + 9.0F, this.x + n + m, this.y + n + 9.0F - 1.0F, 0.01F, g, h, l, f));
+                    this.addEffect(new BakedGlyph.Effect(g, this.y + 9.0F, this.x + f, this.y + 9.0F - 1.0F, this.getOverTextEffectDepth(), k, l, h));
                 }
 
-                this.x += m;
+                this.x += f;
                 return true;
             }
             return false;
         }
 
-        public float finish(int i, float f) {
-            if (i != 0) {
-                float g = (float)(i >> 24 & 255) / 255.0F;
-                float h = (float)(i >> 16 & 255) / 255.0F;
-                float j = (float)(i >> 8 & 255) / 255.0F;
-                float k = (float)(i & 255) / 255.0F;
-                this.addEffect(new BakedGlyph.Effect(f - 1.0F, this.y + 9.0F, this.x + 1.0F, this.y - 1.0F, 0.01F, h, j, k, g));
+        public float finish(float f) {
+            BakedGlyph bakedGlyph = null;
+            if (this.backgroundColor != 0) {
+                BakedGlyph.Effect effect = new BakedGlyph.Effect(f - 1.0F, this.y + 9.0F, this.x, this.y - 1.0F, this.getUnderTextEffectDepth(), this.backgroundColor);
+                bakedGlyph = EmojiFontRenderer.this.getFontSet(Style.DEFAULT_FONT).whiteGlyph();
+                VertexConsumer vertexConsumer = this.bufferSource.getBuffer(bakedGlyph.renderType(this.mode));
+                bakedGlyph.renderEffect(effect, this.pose, vertexConsumer, this.packedLightCoords);
             }
 
+            this.renderCharacters();
             if (this.effects != null) {
-                BakedGlyph bakedGlyph = EmojiFontRenderer.this.getFontSet(Style.DEFAULT_FONT).whiteGlyph();
-                VertexConsumer vertexConsumer = this.bufferSource.getBuffer(bakedGlyph.renderType(this.mode));
+                if (bakedGlyph == null) {
+                    bakedGlyph = EmojiFontRenderer.this.getFontSet(Style.DEFAULT_FONT).whiteGlyph();
+                }
 
-                for (BakedGlyph.Effect effect : this.effects) {
-                    bakedGlyph.renderEffect(effect, this.pose, vertexConsumer, this.packedLightCoords);
+                VertexConsumer vertexConsumer2 = this.bufferSource.getBuffer(bakedGlyph.renderType(this.mode));
+
+                for (BakedGlyph.Effect effect2 : this.effects) {
+                    bakedGlyph.renderEffect(effect2, this.pose, vertexConsumer2, this.packedLightCoords);
                 }
             }
 
             return this.x;
+        }
+
+        private int getTextColor(@Nullable TextColor textColor) {
+            if (textColor != null) {
+                int i = ARGB.alpha(this.color);
+                int j = textColor.getValue();
+                return ARGB.color(i, j);
+            } else {
+                return this.color;
+            }
+        }
+
+        private int getShadowColor(Style style, int i) {
+            Integer integer = style.getShadowColor();
+            if (integer != null) {
+                float f = ARGB.alphaFloat(i);
+                float g = ARGB.alphaFloat(integer);
+                return f != 1.0F ? ARGB.color(ARGB.as8BitChannel(f * g), integer) : integer;
+            } else {
+                return this.drawShadow ? ARGB.scaleRGB(i, 0.25F) : 0;
+            }
+        }
+
+        void renderCharacters() {
+            for (BakedGlyph.GlyphInstance glyphInstance : this.glyphInstances) {
+                BakedGlyph bakedGlyph = glyphInstance.glyph();
+                VertexConsumer vertexConsumer = this.bufferSource.getBuffer(bakedGlyph.renderType(this.mode));
+                bakedGlyph.renderChar(glyphInstance, this.pose, vertexConsumer, this.packedLightCoords);
+            }
+
+        }
+
+        private float getOverTextEffectDepth() {
+            return this.inverseDepth ? 0.01F : -0.01F;
+        }
+
+        private float getUnderTextEffectDepth() {
+            return this.inverseDepth ? -0.01F : 0.01F;
         }
     }
 
